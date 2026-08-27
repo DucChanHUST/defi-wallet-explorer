@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "db:schema": "tsx database/schema/apply-schema.ts",
+    "db:seed": "tsx database/seed/seed.ts",
+    "dev": "tsx watch apps/api/src/server.ts"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "neo4j-driver": "^6.2.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "tsx": "^4.23.12"
+  }
+}
