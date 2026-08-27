@@ -53,3 +53,47 @@ export const getRelatedWallets = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getWalletPositions = async (req: Request, res: Response) => {
+  try {
+    const { address } = req.params;
+
+    if (typeof address !== "string" || !address) {
+      return res.status(400).json({
+        error: "Wallet address is required",
+      });
+    }
+
+    const positions = await walletService.getWalletPositions(address);
+
+    return res.json({ wallet: address, position: positions });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      error: "Internal server error",
+    });
+  }
+};
+
+export const getWalletTokens = async (req: Request, res: Response) => {
+  try {
+    const { address } = req.params;
+
+    if (typeof address !== "string" || !address) {
+      return res.status(400).json({
+        error: "Wallet address is required",
+      });
+    }
+
+    const tokens = await walletService.getWalletTokens(address);
+
+    return res.json({ wallet: address, tokens: tokens });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      error: "Internal server error",
+    });
+  }
+};
