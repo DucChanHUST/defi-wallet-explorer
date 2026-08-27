@@ -14,6 +14,7 @@ export interface GraphNodeData extends Record<string, unknown> {
   subtitle?: string;
   entity: GraphEntity;
   prominent?: boolean;
+  highlighted?: boolean;
 }
 
 export type ExplorerNode = Node<GraphNodeData>;

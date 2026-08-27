@@ -7,6 +7,7 @@ import {
   ReactFlow,
   type NodeMouseHandler,
 } from "@xyflow/react";
+import { useMemo, useState } from "react";
 import "@xyflow/react/dist/style.css";
 import type { ExplorerNode, GraphNodeData } from "../services/graph";
 import type { Edge, NodeProps } from "@xyflow/react";
@@ -30,7 +31,7 @@ function GraphNode({ data, type }: NodeProps<ExplorerNode>) {
   };
   return (
     <div
-      className={`min-w-36 rounded-md border px-3 py-2 shadow-lg shadow-slate-950/30 ${palette[type ?? ""] ?? "border-slate-700 bg-slate-900"} ${data.prominent ? "ring-1 ring-cyan-300" : ""}`}
+      className={`min-w-36 rounded-md border px-3 py-2 shadow-lg shadow-slate-950/30 transition-all duration-150 ${palette[type ?? ""] ?? "border-slate-700 bg-slate-900"} ${data.prominent ? "ring-1 ring-cyan-300" : ""} ${data.highlighted ? "scale-[1.03] !border-cyan-300 !bg-cyan-400/20 ring-2 ring-cyan-300/70" : ""}`}
     >
       <Handle
         type="target"
@@ -68,6 +69,43 @@ export function GraphExplorer({
   onPoolSelect,
   onWalletSelect,
 }: GraphExplorerProps) {
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+
+  const { displayNodes, displayEdges } = useMemo(() => {
+    const connectedEdgeIds = new Set(
+      edges
+        .filter(
+          (edge) =>
+            hoveredNodeId !== null &&
+            (edge.source === hoveredNodeId || edge.target === hoveredNodeId),
+        )
+        .map((edge) => edge.id),
+    );
+
+    return {
+      displayNodes: nodes.map((node) => ({
+        ...node,
+        data: { ...node.data, highlighted: node.id === hoveredNodeId },
+      })),
+      displayEdges: edges.map((edge) => {
+        const highlighted = connectedEdgeIds.has(edge.id);
+        return {
+          ...edge,
+          style: {
+            ...edge.style,
+            stroke: highlighted ? "#38bdf8" : "#475569",
+            strokeWidth: highlighted ? 3 : 1.2,
+            opacity: hoveredNodeId === null || highlighted ? 1 : 0.3,
+          },
+          labelStyle: {
+            ...edge.labelStyle,
+            fill: highlighted ? "#67e8f9" : "#64748b",
+          },
+        };
+      }),
+    };
+  }, [edges, hoveredNodeId, nodes]);
+
   const onNodeClick: NodeMouseHandler<ExplorerNode> = (_event, node) => {
     const entity = (node.data as GraphNodeData).entity;
     if (entity.kind === "pool") onPoolSelect(entity.id);
@@ -77,10 +115,12 @@ export function GraphExplorer({
   return (
     <div className="h-[560px] overflow-hidden rounded-md border border-slate-800 bg-[#0b101b]">
       <ReactFlow
-        nodes={nodes}
-        edges={edges}
+        nodes={displayNodes}
+        edges={displayEdges}
         nodeTypes={nodeTypes}
         onNodeClick={onNodeClick}
+        onNodeMouseEnter={(_event, node) => setHoveredNodeId(node.id)}
+        onNodeMouseLeave={() => setHoveredNodeId(null)}
         fitView
         fitViewOptions={{ padding: 0.18 }}
         minZoom={0.2}

@@ -50,7 +50,12 @@ export function ExplorerPage() {
           `/wallet/${encodeURIComponent(nextAddress)}`,
         );
       try {
-        const [wallet, positions, tokens, relatedWallets] = await Promise.all([
+        const [wallet, positions, tokens, relatedWallets]: [
+          ExplorerData["wallet"],
+          ExplorerData["positions"],
+          ExplorerData["tokens"],
+          ExplorerData["relatedWallets"],
+        ] = await Promise.all([
           api.getWallet(nextAddress, controller.signal),
           api.getPositions(nextAddress, controller.signal),
           api.getTokens(nextAddress, controller.signal),
@@ -125,6 +130,20 @@ export function ExplorerPage() {
     }
   }, []);
 
+  const goHome = () => {
+    request.current?.abort();
+    poolRequest.current?.abort();
+    window.history.pushState({}, "", "/");
+    setAddress("");
+    setData(null);
+    setError(null);
+    setLoading(false);
+    setPool(null);
+    setProviders([]);
+    setPoolError(null);
+    setPoolLoading(false);
+  };
+
   const graph = useMemo(
     () => (data ? buildExplorerGraph(data) : { nodes: [], edges: [] }),
     [data],
@@ -135,14 +154,14 @@ export function ExplorerPage() {
   return (
     <main className="mx-auto min-h-screen max-w-[1600px] px-4 py-6 md:px-8">
       <header className="mb-7 flex flex-col gap-4 border-b border-slate-800 pb-5 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">
-            DeFi analytics
+        <button onClick={goHome} className="group w-fit text-left" aria-label="Return to home page">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400 transition group-hover:text-cyan-200">
+            ◈ DeFi analytics
           </p>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-slate-400 transition group-hover:text-slate-200">
             Wallet relationship explorer
           </p>
-        </div>
+        </button>
         <SearchBar
           initialAddress={address}
           onSearch={(value) => void loadWallet(value)}
